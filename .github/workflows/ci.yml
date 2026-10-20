@@ -14,8 +14,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Hook script on Python 3.8 syntax
-        run: python -m py_compile claude-code/scripts/statejar_hook.py
+      - name: Hook script parses as Python 3.8 (the oldest the plugin supports)
+        run: python -c "import ast,sys; ast.parse(open(sys.argv[1]).read(), feature_version=(3, 8))" plugins/statejar/scripts/statejar_hook.py
       - name: Tests (a stand-in StateJar API; no network, no secrets)
         run: |
           pip install "pytest>=8,<9"
@@ -26,5 +26,9 @@ jobs:
       - name: Claude Code validates the plugin and the marketplace
         run: |
           npm install -g @anthropic-ai/claude-code > /dev/null
-          claude plugin validate ./claude-code
+          claude plugin validate ./plugins/statejar
           claude plugin validate .
+      - name: Codex installs the plugin and finds its MCP server, hooks and skills (no model, no StateJar)
+        run: |
+          npm install -g @openai/codex@0.163.0 > /dev/null
+          python e2e/codex_discovery.py --codex "$(command -v codex)"

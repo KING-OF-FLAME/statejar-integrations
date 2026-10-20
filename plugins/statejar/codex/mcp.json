@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "statejar": {
+      "url": "https://statejar.com/mcp",
+      "bearer_token_env_var": "STATEJAR_API_KEY"
+    }
+  }
+}

@@ -12,7 +12,8 @@ stores facts instead of transcripts:
 | Surface | Where | Status |
 |---|---|---|
 | Hosted MCP server (Cursor, Windsurf, VS Code, Claude Desktop, any MCP client) | `https://statejar.com/mcp` | see https://statejar.com/docs/mcp |
-| Claude Code plugin | [`claude-code/`](claude-code/) | marketplace: this repository |
+| Claude Code plugin | [`plugins/statejar/`](plugins/statejar/), guide in [`claude-code/`](claude-code/) | marketplace: this repository |
+| Codex plugin (the same plugin) | [`plugins/statejar/`](plugins/statejar/), guide in [`codex/`](codex/) | marketplace: this repository |
 
 Every integration uses a StateJar developer key (https://statejar.com/api-keys), scoped to your account. None of
 them stores a transcript. Each removes secrets before anything is sent.
@@ -26,6 +27,15 @@ claude plugin install statejar@statejar
 
 See [claude-code/README.md](claude-code/README.md).
 
+## Codex
+
+```bash
+codex plugin marketplace add KING-OF-FLAME/statejar-integrations
+codex plugin add statejar@statejar
+```
+
+Then trust the plugin's hooks with `/hooks`. See [codex/README.md](codex/README.md).
+
 ## How StateJar compares with Mem0, measured
 
 On StateJar's memory-QA set (100 conversations, 300 questions), with **the same small local model for both systems**
@@ -38,7 +48,8 @@ The method and the caveats are at https://statejar.com/docs/vs-mem0.
 
 ```bash
 python -m pytest tests/
-claude plugin validate ./claude-code && claude plugin validate .
+claude plugin validate ./plugins/statejar && claude plugin validate .
+python e2e/codex_e2e.py --api http://127.0.0.1:8000/api/v1 --mcp http://127.0.0.1:8000/mcp --out /tmp/codex-e2e
 ```
 
 ## Licence

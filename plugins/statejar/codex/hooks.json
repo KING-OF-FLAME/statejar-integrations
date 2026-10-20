@@ -1,0 +1,67 @@
+{
+  "description": "StateJar memory: recall at session start and per prompt, batched capture with secrets removed.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/scripts/statejar_hook.py\" session-start --client codex",
+            "commandWindows": "python \"%PLUGIN_ROOT%\\scripts\\statejar_hook.py\" session-start --client codex",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/scripts/statejar_hook.py\" prompt --client codex",
+            "commandWindows": "python \"%PLUGIN_ROOT%\\scripts\\statejar_hook.py\" prompt --client codex",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/scripts/statejar_hook.py\" stop --client codex",
+            "commandWindows": "python \"%PLUGIN_ROOT%\\scripts\\statejar_hook.py\" stop --client codex",
+            "timeout": 30,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/scripts/statejar_hook.py\" pre-compact --client codex",
+            "commandWindows": "python \"%PLUGIN_ROOT%\\scripts\\statejar_hook.py\" pre-compact --client codex",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$PLUGIN_ROOT/scripts/statejar_hook.py\" session-end --client codex",
+            "commandWindows": "python \"%PLUGIN_ROOT%\\scripts\\statejar_hook.py\" session-end --client codex",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}

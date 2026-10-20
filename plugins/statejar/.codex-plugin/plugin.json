@@ -1,0 +1,20 @@
+{
+  "name": "statejar",
+  "version": "0.1.0",
+  "description": "Verifiable memory for Codex: recalls what a session needs from your StateJar memory, captures the facts you state (secrets removed), and gives Codex StateJar's tools. Every recall names its handle and is an audited disclosure.",
+  "keywords": ["memory", "statejar", "mcp", "recall", "audit"],
+  "skills": "./codex/skills",
+  "mcpServers": "./codex/mcp.json",
+  "hooks": "./codex/hooks.json",
+  "interface": {
+    "displayName": "StateJar memory",
+    "shortDescription": "Verifiable memory: recall, capture and StateJar's tools",
+    "longDescription": "Recalls the memory a session or prompt needs (the whole state while it is small, only the fields a question needs once it is large), captures the facts you state in batches with secrets removed, and adds StateJar's MCP tools. Every recall names the handle (shm_…) of the state it came from and is written to your audit trail.",
+    "developerName": "StateJar",
+    "websiteURL": "https://statejar.com/docs/codex",
+    "privacyPolicyURL": "https://statejar.com/privacy",
+    "termsOfServiceURL": "https://statejar.com/terms",
+    "defaultPrompt": ["What do you remember about me?"],
+    "brandColor": "#E07856"
+  }
+}

@@ -1,16 +1,24 @@
 #!/usr/bin/env python3
-"""StateJar for Claude Code: the plugin's hooks and its local commands. Python 3.8+, standard library only.
+"""StateJar for Claude Code and Codex: the plugin's hooks and its local commands. Python 3.8+, standard library only.
 
-Hooks (hooks/hooks.json), each reading Claude Code's JSON on stdin:
+One script, two clients (`--client claude-code`, the default, or `--client codex`): both send the same hook JSON on
+stdin and read the same `hookSpecificOutput.additionalContext` back. Claude Code runs hooks/hooks.json, Codex runs
+codex/hooks.json.
+
+Hooks, each reading the client's JSON on stdin:
   session-start   recall: the memory a new session needs, as context for Claude (minimal disclosure: the whole state
                   while it is small, the fields a question needs once it is large; each recall is an audited disclosure)
   prompt          capture: the user's prompt, secrets removed, queued on this machine (no network); then, if
                   recall_each_prompt is on, the memory this prompt needs as context
   stop            flush the queue in one batch when it is long or old enough (run in the background)
   pre-compact     flush now, in a detached process
-  session-end     flush now, in a detached process (Claude Code gives SessionEnd hooks 1.5 s)
+  session-end     flush now, in a detached process (Claude Code gives SessionEnd hooks 1.5 s, Codex 1 to 3 s)
 Local commands (the plugin's skills call them):
   status | pause | resume | scope | flush
+
+Options: Claude Code passes the plugin's options as CLAUDE_PLUGIN_OPTION_<NAME>; any client also reads
+STATEJAR_<NAME> from the environment (STATEJAR_API_KEY, STATEJAR_SCOPE, STATEJAR_API_URL, STATEJAR_AUTO_CAPTURE,
+STATEJAR_RECALL_EACH_PROMPT), and the key falls back to the one `statejar login` keeps.
 
 What leaves this machine, and when: a recall sends the question (the user's prompt) to StateJar's query endpoint; a
 flush sends the queued prompts, joined, to the ingest endpoint, where StateJar extracts typed facts and stores no
@@ -31,7 +39,15 @@ import urllib.request
 from pathlib import Path
 
 DEFAULT_API = "https://api.statejar.com/api/v1"
-DEFAULT_SCOPE = "claude-code"
+VERSION = "0.1.0"
+# What differs between the clients: the default scope, how a user turns memory back on, and where the key is set.
+CLIENTS = {
+    "claude-code": {"scope": "claude-code", "resume": "/statejar:resume",
+                    "key_hint": "Set it with /plugin (StateJar options) or `statejar login`"},
+    "codex": {"scope": "codex", "resume": "the StateJar resume skill ($statejar:resume)",
+              "key_hint": "Set STATEJAR_API_KEY where Codex runs, or run `statejar login`"},
+}
+CLIENT = "claude-code"         # set from --client in main()
 BATCH_SIZE = 3                 # prompts per flush at a Stop
 BATCH_AGE_S = 600              # or when the oldest queued prompt is this old
 MAX_BATCH_CHARS = 18_000       # one ingest carries at most this much (the MCP limit is 20,000)
@@ -42,8 +58,12 @@ SESSION_QUERY = "Who is the user, what do they prefer, and what are they working
 # --- configuration ------------------------------------------------------------------------------------------------
 
 def option(name: str, default: str = "") -> str:
-    """A plugin option (userConfig), which Claude Code exports to hooks as CLAUDE_PLUGIN_OPTION_<NAME>."""
-    return (os.environ.get(f"CLAUDE_PLUGIN_OPTION_{name.upper()}") or default).strip()
+    """A plugin option: Claude Code's userConfig (CLAUDE_PLUGIN_OPTION_<NAME>), then STATEJAR_<NAME> (any client)."""
+    for var in (f"CLAUDE_PLUGIN_OPTION_{name.upper()}", f"STATEJAR_{name.upper()}"):
+        value = (os.environ.get(var) or "").strip()
+        if value:
+            return value
+    return default
 
 
 def flag(name: str, default: bool) -> bool:
@@ -61,8 +81,8 @@ def credentials_file() -> Path:
 
 
 def api_key() -> str:
-    """The plugin's own option first, then STATEJAR_API_KEY, then a key `statejar login` kept in its file."""
-    key = option("api_key") or os.environ.get("STATEJAR_API_KEY", "").strip()
+    """The plugin's own option or STATEJAR_API_KEY, then a key `statejar login` kept in its file."""
+    key = option("api_key")
     if key:
         return key
     try:
@@ -77,12 +97,17 @@ def api_url() -> str:
 
 
 def scope() -> str:
-    value = option("scope") or DEFAULT_SCOPE
-    return value if re.fullmatch(r"[A-Za-z0-9._:-]{1,64}", value) else DEFAULT_SCOPE
+    default = CLIENTS[CLIENT]["scope"]
+    value = option("scope") or default
+    return value if re.fullmatch(r"[A-Za-z0-9._:-]{1,64}", value) else default
 
 
 def data_dir(given: str | None = None) -> Path:
-    path = Path(given or os.environ.get("CLAUDE_PLUGIN_DATA") or Path.home() / ".statejar-claude-code")
+    """Where the queue and state live: --data, STATEJAR_DATA_DIR, Claude Code's plugin data folder, else a folder per
+    client beside `statejar login`'s credentials. Codex always uses that last one, so a command its model runs (status,
+    pause, resume) finds the same folder as its hooks."""
+    claude = os.environ.get("CLAUDE_PLUGIN_DATA") if CLIENT == "claude-code" else None
+    path = Path(given or os.environ.get("STATEJAR_DATA_DIR") or claude or credentials_file().parent / "clients" / CLIENT)
     path.mkdir(parents=True, exist_ok=True)
     return path
 
@@ -153,7 +178,7 @@ def call(method: str, path: str, body: dict | None = None, timeout: float = 8.0)
     req = urllib.request.Request(api_url() + path, method=method,
                                  data=json.dumps(body).encode() if body is not None else None,
                                  headers={"X-API-Key": key, "Content-Type": "application/json",
-                                          "User-Agent": "statejar-claude-code/0.1.0", "X-StateJar-Client": "claude-code"})
+                                          "User-Agent": f"statejar-{CLIENT}/{VERSION}", "X-StateJar-Client": CLIENT})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return r.status, json.loads(r.read() or b"{}")
@@ -242,7 +267,7 @@ def flush(d: Path, force: bool) -> str:
 
 
 def detached_flush(d: Path) -> None:
-    args = [sys.executable, os.path.abspath(__file__), "flush", "--force", "--data", str(d)]
+    args = [sys.executable, os.path.abspath(__file__), "flush", "--force", "--data", str(d), "--client", CLIENT]
     kw: dict = {"stdin": subprocess.DEVNULL, "stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
     if os.name == "nt":
         kw["creationflags"] = 0x00000008 | 0x00000200       # DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP
@@ -266,17 +291,24 @@ def hook_input() -> dict:
 
 
 def main(argv: list[str]) -> int:
+    global CLIENT
     cmd = argv[1] if len(argv) > 1 else ""
+    if "--client" in argv:
+        CLIENT = argv[argv.index("--client") + 1] if argv.index("--client") + 1 < len(argv) else ""
+        if CLIENT not in CLIENTS:
+            print(f"statejar hook: --client must be one of {', '.join(CLIENTS)}", file=sys.stderr)
+            return 2
     given = argv[argv.index("--data") + 1] if "--data" in argv else None
     d = data_dir(given)
+    client = CLIENTS[CLIENT]
     if cmd == "session-start":
         hook_input()
         if paused(d):
-            context("SessionStart", "StateJar memory is paused (/statejar:resume turns it back on).")
+            context("SessionStart", f"StateJar memory is paused ({client['resume']} turns it back on).")
             return 0
         if not api_key():
-            context("SessionStart", "StateJar: no developer key yet. Set it with /plugin (StateJar options) or "
-                                    "`statejar login`; until then nothing is recalled or captured.")
+            context("SessionStart", f"StateJar: no developer key yet. {client['key_hint']}; until then nothing is "
+                                    "recalled or captured.")
             return 0
         memory = recall(SESSION_QUERY, timeout=8)
         note = (f"StateJar memory scope for this session: {scope()}. Its tools (search, remember, get, list, update, "
@@ -285,7 +317,7 @@ def main(argv: list[str]) -> int:
     elif cmd == "prompt":
         data = hook_input()
         prompt = str(data.get("prompt") or "")
-        if paused(d) or not prompt.strip() or prompt.lstrip().startswith("/"):
+        if paused(d) or not prompt.strip() or prompt.lstrip()[:1] in ("/", "$"):    # a command or a skill, not a fact
             return 0
         if flag("auto_capture", True) and len(prompt.split()) >= 3:
             clean, _ = scrub(prompt)
@@ -304,7 +336,7 @@ def main(argv: list[str]) -> int:
         print(flush(d, force="--force" in argv))
     elif cmd == "pause":
         (d / "paused").touch()
-        print("StateJar memory paused: nothing is recalled or captured until /statejar:resume.")
+        print(f"StateJar memory paused: nothing is recalled or captured until {client['resume']}.")
     elif cmd == "resume":
         (d / "paused").unlink(missing_ok=True)
         print("StateJar memory resumed.")
@@ -314,8 +346,9 @@ def main(argv: list[str]) -> int:
         st = read_state(d)
         key = api_key()
         print(json.dumps({
-            "paused": paused(d), "scope": scope(), "api": api_url(),
-            "key": f"…{key[-4:]}" if key else "not set (inline commands do not see the plugin's key)",
+            "client": CLIENT, "paused": paused(d), "scope": scope(), "api": api_url(),
+            "key": f"…{key[-4:]}" if key else ("not set (inline commands do not see the plugin's key)"
+                                               if CLIENT == "claude-code" else "not set (" + client["key_hint"] + ")"),
             "queued_prompts": len(queue_lines(d / "queue.jsonl")),
             "last_flush": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(st["last_flush"])) if st.get("last_flush") else None,
             "last_status": st.get("last_status"), "prompts_sent": st.get("sent", 0),
