@@ -21,60 +21,17 @@ The account's password and key are made here and never printed. Hook trust is by
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
-import re
-import secrets
 import shutil
-import socket
 import subprocess
 import sys
-import time
-import urllib.error
-import urllib.request
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
-FACTS = "My name is Meera, I live in Pune and my laptop budget is 65000 rupees."
-QUESTION = "What is my laptop budget?"
+from common import FACTS, QUESTION, REPO, Api, refuse_production, report, scripted_model, stored_check, throwaway_account
+
 SCOPE = "codex"
-PRODUCTION = re.compile(r"^https?://(?:www\.|api\.)?statejar\.com(?::\d+)?(?:/|$)")
-
-
-class Api:
-    def __init__(self, base: str) -> None:
-        self.base = base.rstrip("/")
-        self.token = ""
-        self.key = ""
-
-    def call(self, method: str, path: str, body: dict | None = None) -> tuple[int, dict]:
-        headers = {"Content-Type": "application/json"}
-        if self.key:
-            headers["X-API-Key"] = self.key
-        elif self.token:
-            headers["Authorization"] = f"Bearer {self.token}"
-        req = urllib.request.Request(self.base + path, method=method, headers=headers,
-                                     data=json.dumps(body).encode() if body is not None else None)
-        try:
-            with urllib.request.urlopen(req, timeout=60) as r:
-                return r.status, json.loads(r.read() or b"{}")
-        except urllib.error.HTTPError as e:
-            try:
-                return e.code, json.loads(e.read() or b"{}")
-            except ValueError:
-                return e.code, {}
-
-    def must(self, method: str, path: str, body: dict | None = None) -> dict:
-        status, data = self.call(method, path, body)
-        if status >= 300:
-            raise RuntimeError(f"{method} {path} -> HTTP {status}")
-        return data
-
-
-def free_port() -> int:
-    with socket.socket() as s:
-        s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]
 
 
 def install(codex: str, out: Path, mcp: str, env: dict) -> None:
@@ -100,17 +57,6 @@ def exec_session(codex: str, out: Path, env: dict, model_args: list[str], prompt
     return r.stdout
 
 
-def wait_for_version(api: Api, limit_s: float = 180.0) -> list[str]:
-    """The scope's handle chain, oldest first, once it has a version (the batch is sent at the end of session 1)."""
-    deadline = time.monotonic() + limit_s
-    while time.monotonic() < deadline:
-        versions = api.must("GET", f"/memory/versions?session_tag={SCOPE}").get("versions") or []
-        if versions:
-            return versions
-        time.sleep(2)
-    return []
-
-
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     p.add_argument("--codex", default=shutil.which("codex") or "codex")
@@ -119,57 +65,36 @@ def main() -> int:
     p.add_argument("--model", default="scripted", help="scripted, or ollama:<model name>")
     p.add_argument("--out", required=True)
     a = p.parse_args()
-    if PRODUCTION.match(a.api) or PRODUCTION.match(a.mcp):
-        raise SystemExit("codex_e2e.py runs against a local or staging StateJar, never production")
+    refuse_production(a.api, a.mcp)
+    if a.model != "scripted" and not a.model.startswith("ollama:"):
+        raise SystemExit("--model is scripted or ollama:<model name>")
     out = Path(a.out)
-    if out.exists():
-        shutil.rmtree(out)
+    shutil.rmtree(out, ignore_errors=True)
     (out / "work").mkdir(parents=True)
     (out / "home").mkdir()
-
     api = Api(a.api)
-    email = f"e2e-codex-{secrets.token_hex(4)}@example.com"
-    password = "E2e-" + secrets.token_urlsafe(18)
-    checks: list[tuple[str, bool, str]] = []
-    model_proc = None
-    try:
-        if api.call("POST", "/auth/signup", {"email": email, "password": password})[0] >= 300:
-            raise RuntimeError("signup refused")
-        api.token = api.must("POST", "/auth/login", {"email": email, "password": password})["access_token"]
-        key = api.must("POST", "/apikeys/generate", {"label": "codex e2e"})["api_key"]
-        api.key = key
-
+    checks: list = []
+    log = out / "model-requests.jsonl"
+    with contextlib.ExitStack() as stack:
+        key = stack.enter_context(throwaway_account(api, "codex", checks))
         env = {**os.environ, "CODEX_HOME": str(out / "home"), "HOME": str(out / "home"),
-               "STATEJAR_API_KEY": key, "STATEJAR_API_URL": a.api, "STATEJAR_SCOPE": SCOPE,
-               "XDG_CONFIG_HOME": str(out / "home" / ".config")}
+               "XDG_CONFIG_HOME": str(out / "home" / ".config"),
+               "STATEJAR_API_KEY": key, "STATEJAR_API_URL": a.api, "STATEJAR_SCOPE": SCOPE}
         env.pop("STATEJAR_DATA_DIR", None)
         install(a.codex, out, a.mcp, env)
-
-        log = out / "model-requests.jsonl"
+        model_args: list[str] = []
         if a.model == "scripted":
-            port = free_port()
-            model_proc = subprocess.Popen([sys.executable, str(REPO / "e2e" / "scripted_model.py"), "--port", str(port),
-                                           "--log", str(log)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            time.sleep(0.5)
+            port = stack.enter_context(scripted_model(log))
             config = out / "home" / "config.toml"
             config.write_text('model = "scripted"\nmodel_provider = "scripted"\n\n' + config.read_text() +
                               f'\n[model_providers.scripted]\nname = "scripted"\nbase_url = "http://127.0.0.1:{port}/v1"\n'
                               'wire_api = "responses"\n')
-            model_args: list[str] = []
-        elif a.model.startswith("ollama:"):
-            model_args = ["--oss", "--local-provider", "ollama", "-m", a.model.split(":", 1)[1]]
         else:
-            raise SystemExit("--model is scripted or ollama:<model name>")
+            model_args = ["--oss", "--local-provider", "ollama", "-m", a.model.split(":", 1)[1]]
 
         exec_session(a.codex, out, env, model_args, FACTS, "session1")
-        versions = wait_for_version(api)
-        handle = versions[-1] if versions else "shm_none"
-        state = api.must("GET", f"/memory/state/{handle}")["state"] if versions else {}
-        flat = json.dumps(state)
-        stored = all(x in flat for x in ("Meera", "Pune", "65000"))
-        checks.append(("session 1: the facts were captured and stored", stored and bool(versions),
-                       f"{len(versions)} version(s), handle {handle[:16]}…" if versions else "no version"))
-
+        check, handle = stored_check(api, SCOPE)
+        checks.append(check)
         answer = exec_session(a.codex, out, env, model_args, QUESTION, "session2")
         if a.model == "scripted":
             requests = [json.loads(x) for x in log.read_text().splitlines()]
@@ -186,19 +111,7 @@ def main() -> int:
                            answer.strip().splitlines()[-1][:120] if answer.strip() else "empty"))
         audit = api.must("GET", "/audit").get("entries") or []
         checks.append(("every recall is in the audit trail", len(audit) >= 2, f"{len(audit)} audit entries"))
-    finally:
-        if model_proc:
-            model_proc.terminate()
-        if api.token:
-            api.key = ""
-            status, _ = api.call("DELETE", "/account", {"confirm_email": email, "password": password})
-            checks.append(("the throwaway account was deleted", status == 200, f"HTTP {status}"))
-    width = max(len(c[0]) for c in checks)
-    for name, ok, detail in checks:
-        print(f"{'PASS' if ok else 'FAIL'}  {name.ljust(width)}  {detail}")
-    summary = {"model": a.model, "api": a.api, "checks": [{"check": c[0], "pass": c[1], "detail": c[2]} for c in checks]}
-    (out / "summary.json").write_text(json.dumps(summary, indent=1))
-    return 0 if all(c[1] for c in checks) else 1
+    return report(checks, out, {"client": "codex", "model": a.model, "api": a.api})
 
 
 if __name__ == "__main__":

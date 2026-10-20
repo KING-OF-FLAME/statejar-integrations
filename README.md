@@ -49,7 +49,17 @@ The method and the caveats are at https://statejar.com/docs/vs-mem0.
 ```bash
 python -m pytest tests/
 claude plugin validate ./plugins/statejar && claude plugin validate .
+```
+
+End to end, against a local or staging StateJar (never production): a fact stated in one session of the real client
+is recalled in a fresh one, through the hooks and through StateJar's MCP tools. Each run makes a throwaway account and
+deletes it. With no model on the machine, a scripted stand-in (`e2e/scripted_model.py`) answers "OK" or calls
+StateJar's `search` and repeats its output verbatim; `codex_e2e.py --model ollama:<name>` uses a real local model.
+
+```bash
 python e2e/codex_e2e.py --api http://127.0.0.1:8000/api/v1 --mcp http://127.0.0.1:8000/mcp --out /tmp/codex-e2e
+python e2e/claude_code_e2e.py --api http://127.0.0.1:8000/api/v1 --mcp http://127.0.0.1:8000/mcp --out /tmp/cc-e2e
+python e2e/codex_discovery.py          # what Codex itself loads from the plugin; no model, no StateJar
 ```
 
 ## Licence
