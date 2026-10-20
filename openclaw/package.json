@@ -8,7 +8,7 @@
   "keywords": ["openclaw", "openclaw-plugin", "memory", "statejar"],
   "homepage": "https://statejar.com/docs/openclaw",
   "repository": { "type": "git", "url": "git+https://github.com/KING-OF-FLAME/statejar-integrations.git", "directory": "openclaw" },
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "author": "StateJar",
   "peerDependencies": { "openclaw": ">=2026.10.5" },
   "openclaw": {

@@ -1,7 +1,7 @@
 ---
 name: statejar
 description: Remember and recall the user's own facts with StateJar (name, city, budget, preferences, plans, constraints). Use before answering a question that depends on the user's facts, when the user tells you something about themselves worth keeping, or when they ask you to remember, forget, list or export what you know about them.
-license: LicenseRef-StateJar-SDK-License
+license: MIT
 compatibility: Needs StateJar's MCP server (https://statejar.com/mcp) or the statejar CLI (pip install statejar), and a StateJar developer key.
 metadata:
   homepage: https://statejar.com/docs/skills

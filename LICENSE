@@ -1,112 +1,21 @@
-StateJar SDK License
-Version 1.0
+MIT License
 
-© 2026 StateJar. All rights reserved.
+Copyright (c) 2026 StateJar
 
-This licence covers the StateJar client integrations published in the
-"statejar-integrations" repository (the Claude Code plugin and marketplace,
-and the configurations, plugins and skills for other AI agents), in each
-version that includes this file (the "Package"). The Package is a client for
-the hosted StateJar memory service (the "Service"). It is not the Service,
-and it is not licensed under any open-source licence.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-1. Grant of rights
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-   Subject to the conditions of this licence, the copyright holder grants you
-   a worldwide, royalty-free, non-exclusive, non-transferable licence to:
-
-   (a) Use. Download, install and use unmodified copies of the Package, and
-       incorporate the unmodified Package as a dependency of your own
-       software, for the purpose of accessing and using the Service.
-
-   (b) Redistribute unmodified copies. Reproduce and redistribute exact,
-       unmodified copies of the Package as published, including through
-       package registries and plugin marketplaces (such as the Python Package
-       Index, the npm registry and Claude Code plugin marketplaces), their users, and any public or private mirror, cache or
-       archive of those registries, provided this licence file and all
-       copyright and patent notices travel with each copy.
-
-   (c) Registry operations. The operator of any package registry to which the
-       copyright holder uploads the Package may copy, store, publish, display,
-       transmit, mirror, archive and analyse the Package (including automated
-       security analysis that executes its code) as needed to operate that
-       registry, as that registry's terms require.
-
-2. Restrictions
-
-   Except as expressly permitted in section 1, you may not:
-
-   (a) modify the Package, or create derivative works of it, for distribution,
-       sublicensing or sale;
-   (b) sell the Package, or distribute it for a fee, on its own;
-   (c) use the Package, the Service, or any output or documentation of either,
-       to build, train, benchmark for the purpose of replicating, or operate a
-       product or service that competes with the Service;
-   (d) reverse engineer, decompile or otherwise attempt to derive the source
-       code, algorithms, models or internal structure of the Service (the
-       Package's own source is provided as published and may be read);
-   (e) remove, alter or obscure any copyright, patent, trademark or licence
-       notice in the Package.
-
-   Private modifications made solely to use the Package with the Service
-   inside your own organisation are permitted, provided they are not
-   distributed.
-
-3. Patent rights
-
-   The Service implements the method described in Indian patent application
-   No. 202621017626 ("Deterministic State-Handle Based Memory for
-   Multi-Session Conversational System"). All patent rights, including the
-   rights in that application and in any patent granted from it or claiming
-   priority to it, are reserved.
-
-   The only patent licence granted is a licence, under the copyright holder's
-   patent rights, to perform the acts permitted in section 1 with the
-   Package in connection with the Service. No other patent licence is
-   granted, whether expressly, by implication, by estoppel or otherwise. In
-   particular, no licence is granted to implement the patented method
-   outside the Service.
-
-4. Service terms
-
-   Use of the Service itself (accounts, API keys, usage limits and fees) is
-   governed by the StateJar terms of service published at
-   https://statejar.com/terms, not by this licence.
-
-5. No warranty
-
-   THE PACKAGE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-   IMPLIED, INCLUDING ANY WARRANTY OF MERCHANTABILITY, FITNESS FOR A
-   PARTICULAR PURPOSE, ACCURACY OR NON-INFRINGEMENT.
-
-6. Limitation of liability
-
-   TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL THE COPYRIGHT
-   HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-   CONNECTION WITH THE PACKAGE OR ITS USE.
-
-7. Termination
-
-   This licence terminates automatically if you breach any of its terms. On
-   termination you must stop using and distributing the Package. Copies
-   already lawfully redistributed under section 1(b) by others, and the
-   rights of registry operators under section 1(c), are not affected by the
-   termination of your licence.
-
-8. Changes to these terms
-
-   The copyright holder may publish future versions of the Package under
-   different terms. Each version of the Package is governed by the licence
-   included with that version; a change of terms does not apply retroactively
-   to versions already published.
-
-9. Governing law
-
-   This licence is governed by the laws of India. The courts at
-   Pune, Maharashtra have exclusive
-   jurisdiction over any dispute arising under it.
-
-10. Contact
-
-   Requests for permissions beyond this licence: mr.yashraj5233@gmail.com.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

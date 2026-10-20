@@ -6,8 +6,7 @@ account it needs, the commands, and what is not verified yet.
 
 Two things must be true before any listing goes out:
 
-1. The hosted MCP server answers at `https://statejar.com/mcp`. It is built (Statejar-production, branch
-   `feat/mcp-server`) and goes to production after the extraction release decision.
+1. The hosted MCP server answers at `https://statejar.com/mcp`. It goes live with StateJar's next release.
 2. This repository is public at `github.com/KING-OF-FLAME/statejar-integrations`. Every listing links to it.
 
 ## What leaves the user's machine (the same text for every listing)

@@ -9,7 +9,7 @@
   "keywords": ["opencode", "opencode-plugin", "memory", "statejar", "mcp"],
   "homepage": "https://statejar.com/docs/opencode",
   "repository": { "type": "git", "url": "git+https://github.com/KING-OF-FLAME/statejar-integrations.git", "directory": "opencode" },
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "author": "StateJar",
   "engines": { "node": ">=20" }
 }

@@ -11,17 +11,51 @@ stores facts instead of transcripts:
 
 | Surface | Where | Status |
 |---|---|---|
-| Hosted MCP server (Cursor, Windsurf, VS Code, Claude Desktop, any MCP client) | `https://statejar.com/mcp` | see https://statejar.com/docs/mcp |
+| Hosted MCP server (any client that speaks MCP over HTTP) | `https://statejar.com/mcp` | live with StateJar's next release |
 | Claude Code plugin | [`plugins/statejar/`](plugins/statejar/), guide in [`claude-code/`](claude-code/) | marketplace: this repository |
 | Codex plugin (the same plugin) | [`plugins/statejar/`](plugins/statejar/), guide in [`codex/`](codex/) | marketplace: this repository |
 | OpenCode plugin | [`opencode/`](opencode/) | npm: `opencode-statejar` |
 | Hermes Agent memory provider (`memory.provider: statejar`) | [`hermes/statejar/`](hermes/statejar/) | `hermes plugins install` from this repository |
 | OpenClaw memory-slot plugin | [`openclaw/`](openclaw/) | npm: `openclaw-statejar` |
 | Agent skill (any agent that reads `SKILL.md`) | [`skills/statejar/`](skills/statejar/) | copy into the agent's skills folder |
-| CLI: `statejar init, add, search, list, forget, export, status` | PyPI: `statejar` | `pip install statejar` |
+| CLI: `statejar login`, and `init, add, search, list, forget, export, status` | PyPI: `statejar` | `pip install statejar` (0.6.0 has `login`, `logout`, `whoami`; the other seven come in 0.7.0) |
 
 Every integration uses a StateJar developer key (https://statejar.com/api-keys), scoped to your account. None of
 them stores a transcript. Each removes secrets before anything is sent.
+
+**Availability.** Recall and capture call StateJar's REST API at `https://api.statejar.com`, which is live. The hosted
+MCP server at `https://statejar.com/mcp`, which the plugins' StateJar tools use, goes live with StateJar's next
+release. Until then those tools cannot connect, and recall and capture work as they are.
+
+## Any MCP client
+
+Make a developer key at https://statejar.com/api-keys and put it in `STATEJAR_API_KEY`. Then:
+
+```bash
+# Claude Code
+claude mcp add --transport http statejar https://statejar.com/mcp --header "Authorization: Bearer $STATEJAR_API_KEY"
+# Codex
+codex mcp add statejar --url https://statejar.com/mcp --bearer-token-env-var STATEJAR_API_KEY
+```
+
+OpenCode, in `opencode.json`:
+
+```json
+{
+  "mcp": {
+    "statejar": {
+      "type": "remote",
+      "url": "https://statejar.com/mcp",
+      "oauth": false,
+      "headers": { "Authorization": "Bearer {env:STATEJAR_API_KEY}" }
+    }
+  }
+}
+```
+
+Any other client: a remote (HTTP) MCP server at `https://statejar.com/mcp` with the header
+`Authorization: Bearer <your key>`. The ten tools are `remember`, `search`, `get`, `list`, `update`, `delete`,
+`history`, `audit`, `verify` and `export`.
 
 ## Claude Code
 
@@ -64,13 +98,18 @@ openclaw statejar init       # the memory slot, autoRecall, autoCapture
 
 See [openclaw/README.md](openclaw/README.md).
 
+## Agent skill
+
+Copy [`skills/statejar/`](skills/statejar/) into your agent's skills folder (for Claude Code, `~/.claude/skills/`). See
+[skills/README.md](skills/README.md).
+
 ## How StateJar compares with Mem0, measured
 
 On StateJar's memory-QA set (100 conversations, 300 questions), with **the same small local model for both systems**
 (Qwen3-4B-Instruct-2507 Q4, on one GPU), StateJar's memory held the answer for **248 of 300** questions and Mem0's
 (2.2.1, as shipped) for **152 of 300** (McNemar p = 1.4e-18). Answers written by one prompt from each system's memory
 were right **218 of 300** times for StateJar and **159 of 300** for Mem0. This is one benchmark, in that setting only.
-The method and the caveats are at https://statejar.com/docs/vs-mem0.
+The method and the caveats are on https://statejar.com/docs/vs-mem0, published with StateJar's next release.
 
 ## Tests
 
@@ -97,4 +136,4 @@ python e2e/codex_discovery.py          # what Codex itself loads from the plugin
 
 ## Licence
 
-StateJar SDK License (see [LICENSE](LICENSE)): use with the StateJar service, and redistribute unmodified copies.
+MIT (see [LICENSE](LICENSE)). The StateJar service these clients talk to has its own terms: https://statejar.com/terms.

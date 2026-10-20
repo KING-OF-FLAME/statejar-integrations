@@ -45,3 +45,19 @@ jobs:
         run: |
           npm install -g openclaw@2026.10.5 > /dev/null
           python e2e/openclaw_discovery.py --openclaw "$(command -v openclaw)"
+
+  secrets:
+    # every commit, not only the latest: a key removed later is still in history
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: No secret in any commit (gitleaks 8.30.1, checksum-verified)
+        run: |
+          v=8.30.1
+          curl -sSfL -o "$RUNNER_TEMP/gl.tgz" "https://github.com/gitleaks/gitleaks/releases/download/v$v/gitleaks_${v}_linux_x64.tar.gz"
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $RUNNER_TEMP/gl.tgz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/gl.tgz" -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" git --redact --no-banner --exit-code 1 .

@@ -6,7 +6,7 @@
   "author": { "name": "StateJar", "url": "https://statejar.com" },
   "homepage": "https://statejar.com/docs/claude-code",
   "repository": "https://github.com/KING-OF-FLAME/statejar-integrations",
-  "license": "LicenseRef-StateJar-SDK-License",
+  "license": "MIT",
   "keywords": ["memory", "statejar", "mcp", "recall", "audit"],
   "userConfig": {
     "api_key": {
