@@ -1,0 +1,15 @@
+{
+  "name": "opencode-statejar",
+  "version": "0.1.0",
+  "description": "StateJar memory for OpenCode: recall before the model answers, batched capture with secrets removed, and status / pause / resume tools.",
+  "type": "module",
+  "main": "statejar.js",
+  "exports": { ".": "./statejar.js" },
+  "files": ["statejar.js", "README.md", "LICENSE"],
+  "keywords": ["opencode", "opencode-plugin", "memory", "statejar", "mcp"],
+  "homepage": "https://statejar.com/docs/opencode",
+  "repository": { "type": "git", "url": "git+https://github.com/KING-OF-FLAME/statejar-integrations.git", "directory": "opencode" },
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "StateJar",
+  "engines": { "node": ">=20" }
+}

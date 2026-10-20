@@ -14,6 +14,7 @@ stores facts instead of transcripts:
 | Hosted MCP server (Cursor, Windsurf, VS Code, Claude Desktop, any MCP client) | `https://statejar.com/mcp` | see https://statejar.com/docs/mcp |
 | Claude Code plugin | [`plugins/statejar/`](plugins/statejar/), guide in [`claude-code/`](claude-code/) | marketplace: this repository |
 | Codex plugin (the same plugin) | [`plugins/statejar/`](plugins/statejar/), guide in [`codex/`](codex/) | marketplace: this repository |
+| OpenCode plugin | [`opencode/`](opencode/) | npm: `opencode-statejar` |
 
 Every integration uses a StateJar developer key (https://statejar.com/api-keys), scoped to your account. None of
 them stores a transcript. Each removes secrets before anything is sent.
@@ -35,6 +36,11 @@ codex plugin add statejar@statejar
 ```
 
 Then trust the plugin's hooks with `/hooks`. See [codex/README.md](codex/README.md).
+
+## OpenCode
+
+Add `"plugin": ["opencode-statejar"]` and StateJar's MCP server to `opencode.json`. See
+[opencode/README.md](opencode/README.md).
 
 ## How StateJar compares with Mem0, measured
 
@@ -59,6 +65,7 @@ StateJar's `search` and repeats its output verbatim; `codex_e2e.py --model ollam
 ```bash
 python e2e/codex_e2e.py --api http://127.0.0.1:8000/api/v1 --mcp http://127.0.0.1:8000/mcp --out /tmp/codex-e2e
 python e2e/claude_code_e2e.py --api http://127.0.0.1:8000/api/v1 --mcp http://127.0.0.1:8000/mcp --out /tmp/cc-e2e
+python e2e/opencode_e2e.py --api http://127.0.0.1:8000/api/v1 --mcp http://127.0.0.1:8000/mcp --out /tmp/oc-e2e
 python e2e/codex_discovery.py          # what Codex itself loads from the plugin; no model, no StateJar
 ```
 

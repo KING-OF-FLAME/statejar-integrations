@@ -136,8 +136,8 @@ def chat_reply(body: dict) -> dict:
         return {"role": "assistant", "content": content if isinstance(content, str) else json.dumps(content)}
     tools = [{"name": (t.get("function") or {}).get("name", "")} for t in body.get("tools") or []]
     tool = search_tool(tools)
-    question = text_of(last) if last.get("role") == "user" else ""
-    if tool and question.rstrip().endswith("?"):
+    question = (text_of(last) if last.get("role") == "user" else "").strip().strip('"').strip()   # `opencode run` quotes it
+    if tool and question.endswith("?"):
         return {"role": "assistant", "content": None,
                 "tool_calls": [{"id": "call_1", "type": "function", "function": {
                     "name": tool[1], "arguments": json.dumps({"query": question.strip(), "session": "opencode"})}}]}

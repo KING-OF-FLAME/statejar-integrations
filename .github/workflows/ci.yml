@@ -16,13 +16,13 @@ jobs:
           python-version: "3.12"
       - name: Hook script parses as Python 3.8 (the oldest the plugin supports)
         run: python -c "import ast,sys; ast.parse(open(sys.argv[1]).read(), feature_version=(3, 8))" plugins/statejar/scripts/statejar_hook.py
-      - name: Tests (a stand-in StateJar API; no network, no secrets)
-        run: |
-          pip install "pytest>=8,<9"
-          python -m pytest -q tests/
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Tests (a stand-in StateJar API; no network, no secrets; the OpenCode plugin runs in Node)
+        run: |
+          pip install "pytest>=8,<9"
+          python -m pytest -q tests/
       - name: Claude Code validates the plugin and the marketplace
         run: |
           npm install -g @anthropic-ai/claude-code > /dev/null

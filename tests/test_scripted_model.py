@@ -58,3 +58,9 @@ def test_chat_completions_calls_search_then_repeats_the_tool_message():
     body["messages"] += [reply, {"role": "tool", "tool_call_id": call["id"], "content": RESULT}]
     assert sm.chat_reply(body) == {"role": "assistant", "content": RESULT}
     assert b"data: [DONE]" in sm.chat_events({"role": "assistant", "content": "OK"})
+
+
+def test_chat_completions_reads_a_question_opencode_run_quoted():
+    body = {"tools": [{"type": "function", "function": {"name": "statejar_search"}}],
+            "messages": [{"role": "user", "content": '"What is my laptop budget?"'}]}
+    assert sm.chat_reply(body)["tool_calls"][0]["function"]["name"] == "statejar_search"
