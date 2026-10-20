@@ -6,8 +6,11 @@ account it needs, the commands, and what is not verified yet.
 
 Two things must be true before any listing goes out:
 
-1. The hosted MCP server answers at `https://statejar.com/mcp`. It goes live with StateJar's next release.
-2. This repository is public at `github.com/KING-OF-FLAME/statejar-integrations`. Every listing links to it.
+1. The hosted MCP server answers at `https://statejar.com/mcp`. **Not yet:** it goes live with StateJar's next
+   release.
+2. This repository is public at `github.com/KING-OF-FLAME/statejar-integrations`, and every listing links to it.
+   **Done (2026-10-20).** Releases: `statejar-plugin-v0.1.0`, `opencode-statejar-v0.1.0`,
+   `openclaw-statejar-v0.1.0`, `hermes-statejar-v0.1.0`. On npm: `opencode-statejar` and `openclaw-statejar` 0.1.0.
 
 ## What leaves the user's machine (the same text for every listing)
 
