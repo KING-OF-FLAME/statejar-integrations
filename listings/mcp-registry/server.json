@@ -1,0 +1,26 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.statejar/memory",
+  "title": "StateJar memory",
+  "description": "Verifiable memory for AI assistants: typed facts, content-addressed versions and an audit trail.",
+  "version": "1.0.0",
+  "websiteUrl": "https://statejar.com/docs/mcp",
+  "repository": {
+    "url": "https://github.com/KING-OF-FLAME/statejar-integrations",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://statejar.com/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "A StateJar developer key, as 'Bearer sj_live_…' (statejar.com/api-keys)",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}
