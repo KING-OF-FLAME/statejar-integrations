@@ -1,0 +1,14 @@
+{
+  "name": "statejar",
+  "owner": { "name": "StateJar", "url": "https://statejar.com" },
+  "description": "StateJar's verifiable memory for Claude Code.",
+  "plugins": [
+    {
+      "name": "statejar",
+      "source": "./claude-code",
+      "description": "Recall at session start and per prompt, batched capture with secrets removed, StateJar's MCP tools, and /statejar commands.",
+      "category": "memory",
+      "tags": ["memory", "mcp", "audit"]
+    }
+  ]
+}

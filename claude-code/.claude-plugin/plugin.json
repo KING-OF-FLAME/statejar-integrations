@@ -1,0 +1,50 @@
+{
+  "name": "statejar",
+  "displayName": "StateJar memory",
+  "version": "0.1.0",
+  "description": "Verifiable memory for Claude Code: recalls what a session needs from your StateJar memory, captures the facts you state (secrets removed), and gives Claude StateJar's tools. Every recall names its handle and is an audited disclosure.",
+  "author": { "name": "StateJar", "url": "https://statejar.com" },
+  "homepage": "https://statejar.com/docs/claude-code",
+  "repository": "https://github.com/KING-OF-FLAME/statejar-integrations",
+  "license": "LicenseRef-StateJar-SDK-License",
+  "keywords": ["memory", "statejar", "mcp", "recall", "audit"],
+  "userConfig": {
+    "api_key": {
+      "type": "string",
+      "title": "StateJar developer key",
+      "description": "A developer key (sj_live_…) from https://statejar.com/api-keys. Kept in your system's secure credential store.",
+      "sensitive": true,
+      "required": true
+    },
+    "scope": {
+      "type": "string",
+      "title": "Memory scope",
+      "description": "The scope (session) inside your StateJar account that Claude Code reads and writes. A new scope builds on your newest memory.",
+      "default": "claude-code"
+    },
+    "auto_capture": {
+      "type": "boolean",
+      "title": "Capture what you say",
+      "description": "Queue your prompts (secrets removed) and send them in batches; StateJar stores the typed facts in them, never a transcript.",
+      "default": true
+    },
+    "recall_each_prompt": {
+      "type": "boolean",
+      "title": "Recall for each prompt",
+      "description": "Before each prompt, add the memory that prompt needs as context (one audited query per prompt).",
+      "default": true
+    },
+    "api_url": {
+      "type": "string",
+      "title": "StateJar API URL",
+      "description": "The REST API the hooks call.",
+      "default": "https://api.statejar.com/api/v1"
+    },
+    "mcp_url": {
+      "type": "string",
+      "title": "StateJar MCP URL",
+      "description": "The MCP server Claude's StateJar tools use.",
+      "default": "https://statejar.com/mcp"
+    }
+  }
+}
