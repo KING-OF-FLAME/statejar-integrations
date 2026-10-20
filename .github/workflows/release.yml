@@ -1,0 +1,45 @@
+# Push the branch release/<tag> (tags: statejar-plugin, opencode-statejar, openclaw-statejar, hermes-statejar or
+# statejar-skill, then -v<version>) at a commit of main whose CI passed. This job checks that the component's
+# manifest says that version, creates the tag and the GitHub release at that commit with the notes in
+# releases/<tag>.md, and deletes the branch. npm packages are published from their tags separately.
+name: release
+
+on:
+  push:
+    branches: ['release/*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          tag="${BRANCH#release/}"
+          [[ "$tag" =~ ^(statejar-plugin|opencode-statejar|openclaw-statejar|hermes-statejar|statejar-skill)-v([0-9]+\.[0-9]+\.[0-9]+)$ ]] \
+            || { echo "::error::not a release tag: $tag"; exit 1; }
+          part="${BASH_REMATCH[1]}"; ver="${BASH_REMATCH[2]}"
+          case "$part" in
+            statejar-plugin) have=$(jq -r .version plugins/statejar/.claude-plugin/plugin.json)
+                             codex=$(jq -r .version plugins/statejar/.codex-plugin/plugin.json)
+                             [ "$codex" = "$have" ] || { echo "::error::Claude Code $have, Codex $codex"; exit 1; } ;;
+            opencode-statejar) have=$(jq -r .version opencode/package.json) ;;
+            openclaw-statejar) have=$(jq -r .version openclaw/package.json) ;;
+            hermes-statejar) have=$(sed -n 's/^version: *//p' hermes/statejar/plugin.yaml) ;;
+            statejar-skill) have=$(sed -n 's/^ *version: *"\{0,1\}\([0-9.]*\)"\{0,1\}$/\1/p' skills/statejar/SKILL.md) ;;
+          esac
+          [ "$have" = "$ver" ] || { echo "::error::$part's manifest says $have, the tag $ver"; exit 1; }
+          notes="releases/$tag.md"
+          [ -f "$notes" ] || { echo "::error::no $notes"; exit 1; }
+          title=$(head -1 "$notes" | sed 's/^# *//')
+          tail -n +3 "$notes" > "$RUNNER_TEMP/notes.md"
+          gh release create "$tag" --target "$GITHUB_SHA" --title "$title" --notes-file "$RUNNER_TEMP/notes.md"
+          git push origin --delete "$BRANCH"
