@@ -109,7 +109,7 @@ On StateJar's memory-QA set (100 conversations, 300 questions), with **the same 
 (Qwen3-4B-Instruct-2507 Q4, on one GPU), StateJar's memory held the answer for **248 of 300** questions and Mem0's
 (2.2.1, as shipped) for **152 of 300** (McNemar p = 1.4e-18). Answers written by one prompt from each system's memory
 were right **218 of 300** times for StateJar and **159 of 300** for Mem0. This is one benchmark, in that setting only.
-The method and the caveats are on https://statejar.com/docs/vs-mem0, published with StateJar's next release.
+The method and the caveats: https://statejar.com/docs/mem0.html.
 
 ## Tests
 
