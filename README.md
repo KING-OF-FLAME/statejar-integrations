@@ -130,7 +130,7 @@ python e2e/opencode_e2e.py --api http://127.0.0.1:8000/api/v1 --mcp http://127.0
 python e2e/hermes_e2e.py --api http://127.0.0.1:8000/api/v1 --out /tmp/hermes-e2e
 python e2e/openclaw_e2e.py --api http://127.0.0.1:8000/api/v1 --out /tmp/openclaw-e2e     # Node 24.16+
 python e2e/openclaw_discovery.py       # what OpenClaw itself loads from the plugin; no model, no StateJar
-python3 python -m pytest tests/test_hermes_provider.py   # with Hermes's own loader
+HERMES_PYTHON=/path/to/hermes/venv/bin/python python -m pytest tests/test_hermes_provider.py   # with Hermes's own loader
 python e2e/codex_discovery.py          # what Codex itself loads from the plugin; no model, no StateJar
 ```
 
