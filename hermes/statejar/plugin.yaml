@@ -1,0 +1,8 @@
+name: statejar
+version: 0.1.0
+description: "StateJar: verifiable memory. Typed facts with one value per field, append-only versions, recall of only what a message needs with the handle (shm_...) of the state it came from, and an audit trail of every disclosure."
+hooks:
+  - on_session_end
+  - on_pre_compress
+  - on_memory_write
+  - on_session_switch

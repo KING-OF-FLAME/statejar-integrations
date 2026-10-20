@@ -15,6 +15,7 @@ stores facts instead of transcripts:
 | Claude Code plugin | [`plugins/statejar/`](plugins/statejar/), guide in [`claude-code/`](claude-code/) | marketplace: this repository |
 | Codex plugin (the same plugin) | [`plugins/statejar/`](plugins/statejar/), guide in [`codex/`](codex/) | marketplace: this repository |
 | OpenCode plugin | [`opencode/`](opencode/) | npm: `opencode-statejar` |
+| Hermes Agent memory provider (`memory.provider: statejar`) | [`hermes/statejar/`](hermes/statejar/) | `hermes plugins install` from this repository |
 
 Every integration uses a StateJar developer key (https://statejar.com/api-keys), scoped to your account. None of
 them stores a transcript. Each removes secrets before anything is sent.
@@ -42,6 +43,15 @@ Then trust the plugin's hooks with `/hooks`. See [codex/README.md](codex/README.
 Add `"plugin": ["opencode-statejar"]` and StateJar's MCP server to `opencode.json`. See
 [opencode/README.md](opencode/README.md).
 
+## Hermes Agent
+
+```bash
+hermes plugins install KING-OF-FLAME/statejar-integrations/hermes/statejar --enable
+hermes memory setup          # choose statejar
+```
+
+See [hermes/statejar/README.md](hermes/statejar/README.md).
+
 ## How StateJar compares with Mem0, measured
 
 On StateJar's memory-QA set (100 conversations, 300 questions), with **the same small local model for both systems**
@@ -66,6 +76,8 @@ StateJar's `search` and repeats its output verbatim; `codex_e2e.py --model ollam
 python e2e/codex_e2e.py --api http://127.0.0.1:8000/api/v1 --mcp http://127.0.0.1:8000/mcp --out /tmp/codex-e2e
 python e2e/claude_code_e2e.py --api http://127.0.0.1:8000/api/v1 --mcp http://127.0.0.1:8000/mcp --out /tmp/cc-e2e
 python e2e/opencode_e2e.py --api http://127.0.0.1:8000/api/v1 --mcp http://127.0.0.1:8000/mcp --out /tmp/oc-e2e
+python e2e/hermes_e2e.py --api http://127.0.0.1:8000/api/v1 --out /tmp/hermes-e2e
+python3 python -m pytest tests/test_hermes_provider.py   # with Hermes's own loader
 python e2e/codex_discovery.py          # what Codex itself loads from the plugin; no model, no StateJar
 ```
 

@@ -19,7 +19,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Hermes Agent, for loading the memory provider with Hermes's own discovery
+        run: |
+          python -m venv /tmp/hermes
+          /tmp/hermes/bin/pip install -q "hermes-agent==0.19.0"
       - name: Tests (a stand-in StateJar API; no network, no secrets; the OpenCode plugin runs in Node)
+        env:
+          HERMES_PYTHON: python3
         run: |
           pip install "pytest>=8,<9"
           python -m pytest -q tests/

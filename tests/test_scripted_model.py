@@ -64,3 +64,11 @@ def test_chat_completions_reads_a_question_opencode_run_quoted():
     body = {"tools": [{"type": "function", "function": {"name": "statejar_search"}}],
             "messages": [{"role": "user", "content": '"What is my laptop budget?"'}]}
     assert sm.chat_reply(body)["tool_calls"][0]["function"]["name"] == "statejar_search"
+
+
+def test_chat_completions_reads_the_question_before_memory_hermes_appended():
+    text = "What is my laptop budget?\n\n<memory-context>\nKnown user state:\nconstraints.budget.max: INR 65000\n</memory-context>"
+    body = {"tools": [{"type": "function", "function": {"name": "statejar_search"}}],
+            "messages": [{"role": "user", "content": text}]}
+    call = sm.chat_reply(body)["tool_calls"][0]["function"]
+    assert call["name"] == "statejar_search" and json.loads(call["arguments"])["query"] == "What is my laptop budget?"
