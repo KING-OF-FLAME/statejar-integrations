@@ -59,8 +59,8 @@ def search_tool(tools: list[dict]) -> tuple[str | None, str] | None:
             for sub in t.get("tools") or []:
                 if sub.get("name") == "search":
                     return name, "search"
-        elif "statejar" in name.lower() and name.lower().endswith("search"):
-            return None, name
+        elif ("statejar" in name.lower() and name.lower().endswith("search")) or name == "memory_search":
+            return None, name                        # OpenClaw's memory-slot owner names it memory_search
     return None
 
 
@@ -136,14 +136,19 @@ def chat_reply(body: dict) -> dict:
         return {"role": "assistant", "content": content if isinstance(content, str) else json.dumps(content)}
     tools = [{"name": (t.get("function") or {}).get("name", "")} for t in body.get("tools") or []]
     tool = search_tool(tools)
+    if tool is None and any(t["name"] == "tool_call" for t in tools) and "memory_search" in json.dumps(body):
+        tool = ("tool_call", "memory_search")       # OpenClaw's compact surface: tool_call(id=<tool>, args=...)
     # the user's own words: `opencode run` wraps them in quotes, Hermes appends recalled memory after them
     lines = [ln.strip().strip('"').strip() for ln in (text_of(last) if last.get("role") == "user" else "").splitlines()]
     asks = [ln for ln in lines if ln.endswith("?") and "<" not in ln]
     question = asks[0] if asks else ""
     if tool and question:
+        args = {"query": question.strip(), "session": "opencode"}
+        name, arguments = (("tool_call", {"id": tool[1], "args": {"query": question.strip()}}) if tool[0] == "tool_call"
+                           else (tool[1], args))
         return {"role": "assistant", "content": None,
                 "tool_calls": [{"id": "call_1", "type": "function", "function": {
-                    "name": tool[1], "arguments": json.dumps({"query": question.strip(), "session": "opencode"})}}]}
+                    "name": name, "arguments": json.dumps(arguments)}}]}
     return {"role": "assistant", "content": "OK"}
 
 

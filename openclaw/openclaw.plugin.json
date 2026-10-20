@@ -1,0 +1,24 @@
+{
+  "id": "statejar",
+  "name": "StateJar memory",
+  "description": "Verifiable memory: typed facts with one value per field, append-only versions, recall of only what a turn needs with the handle (shm_...) of the state it came from, and an audit trail of every disclosure.",
+  "categories": ["memory"],
+  "kind": "memory",
+  "activation": { "onStartup": false },
+  "cliCommands": [
+    { "name": "statejar", "description": "Set up and inspect StateJar memory (init, status, search, add, list, forget, export)", "hasSubcommands": true }
+  ],
+  "contracts": {
+    "tools": ["memory_search", "memory_get", "statejar_remember", "statejar_forget"]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "scope": { "type": "string", "pattern": "^[A-Za-z0-9._:-]{1,64}$", "default": "openclaw", "description": "The scope (session) in your StateJar account this plugin reads and writes." },
+      "autoRecall": { "type": "boolean", "default": true, "description": "Before each turn, add the memory the message needs." },
+      "autoCapture": { "type": "boolean", "default": true, "description": "Queue the user's messages (secrets removed) and send them in batches." },
+      "apiUrl": { "type": "string", "default": "https://api.statejar.com/api/v1", "description": "StateJar's REST API." }
+    }
+  }
+}

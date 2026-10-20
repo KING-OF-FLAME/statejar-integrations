@@ -38,3 +38,10 @@ jobs:
         run: |
           npm install -g @openai/codex@0.163.0 > /dev/null
           python e2e/codex_discovery.py --codex "$(command -v codex)"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: OpenClaw installs the plugin, `openclaw statejar init` selects it, and it loads as the memory slot
+        run: |
+          npm install -g openclaw@2026.10.5 > /dev/null
+          python e2e/openclaw_discovery.py --openclaw "$(command -v openclaw)"

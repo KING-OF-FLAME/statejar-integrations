@@ -1,0 +1,20 @@
+{
+  "name": "openclaw-statejar",
+  "version": "0.1.0",
+  "description": "StateJar memory for OpenClaw: a memory-slot plugin with auto-recall, batched auto-capture with secrets removed, memory_search / memory_get, and `openclaw statejar init`.",
+  "type": "module",
+  "main": "index.js",
+  "files": ["index.js", "openclaw.plugin.json", "README.md", "LICENSE"],
+  "keywords": ["openclaw", "openclaw-plugin", "memory", "statejar"],
+  "homepage": "https://statejar.com/docs/openclaw",
+  "repository": { "type": "git", "url": "git+https://github.com/KING-OF-FLAME/statejar-integrations.git", "directory": "openclaw" },
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "StateJar",
+  "peerDependencies": { "openclaw": ">=2026.10.5" },
+  "openclaw": {
+    "extensions": ["./index.js"],
+    "compat": { "pluginApi": ">=2026.10.5", "minGatewayVersion": "2026.10.5" },
+    "build": { "openclawVersion": "2026.10.5", "pluginSdkVersion": "2026.10.5" }
+  },
+  "engines": { "node": ">=24.16" }
+}
