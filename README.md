@@ -17,6 +17,8 @@ stores facts instead of transcripts:
 | OpenCode plugin | [`opencode/`](opencode/) | npm: `opencode-statejar` |
 | Hermes Agent memory provider (`memory.provider: statejar`) | [`hermes/statejar/`](hermes/statejar/) | `hermes plugins install` from this repository |
 | OpenClaw memory-slot plugin | [`openclaw/`](openclaw/) | npm: `openclaw-statejar` |
+| Agent skill (any agent that reads `SKILL.md`) | [`skills/statejar/`](skills/statejar/) | copy into the agent's skills folder |
+| CLI: `statejar init, add, search, list, forget, export, status` | PyPI: `statejar` | `pip install statejar` |
 
 Every integration uses a StateJar developer key (https://statejar.com/api-keys), scoped to your account. None of
 them stores a transcript. Each removes secrets before anything is sent.
