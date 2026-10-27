@@ -4,9 +4,8 @@
 follow to remember and recall the user's facts with StateJar, through StateJar's MCP tools or the `statejar` CLI
 (`pip install statejar`).
 
-It needs one of the two: the MCP server at `https://statejar.com/mcp` (live with StateJar's next release) or the
-`statejar` CLI 0.7.0 (its `add`, `search`, `list`, `forget`, `export` and `status` commands; 0.6.0, on PyPI now,
-signs in only).
+It needs one of the two: the MCP server at `https://statejar.com/mcp` (live since 2026-10-21) or the `statejar` CLI
+0.7.0 (its `add`, `search`, `list`, `forget`, `export` and `status` commands; 0.6.0, on PyPI now, signs in only).
 
 ## Install
 
