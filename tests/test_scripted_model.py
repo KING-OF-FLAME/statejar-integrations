@@ -72,3 +72,54 @@ def test_chat_completions_reads_the_question_before_memory_hermes_appended():
             "messages": [{"role": "user", "content": text}]}
     call = sm.chat_reply(body)["tool_calls"][0]["function"]
     assert call["name"] == "statejar_search" and json.loads(call["arguments"])["query"] == "What is my laptop budget?"
+
+
+# --- --skill: the stand-in asserts the client offered the skill, then follows it --------------------------------------
+
+SKILL = sm.load_skill(ROOT / "skills" / "statejar" / "SKILL.md")
+LISTING = f"The following skills are available for use with the Skill tool:\n\n- statejar: {SKILL['description']}"
+
+
+def _turn(body: dict, block: dict, result: object) -> None:
+    body["messages"] += [{"role": "assistant", "content": [block]},
+                         {"role": "user", "content": [{"type": "tool_result", "tool_use_id": block["id"],
+                                                       "content": result}]}]
+
+
+def test_skill_not_offered_ends_the_turn_saying_so():
+    body = {"tools": [{"name": "Skill"}], "messages": [{"role": "user", "content": "My name is Meera."}]}
+    block, stop, seen = sm.skill_reply(body, SKILL)
+    assert stop == "end_turn" and block["text"].startswith("SKILL NOT OFFERED") and not seen["listed"]
+
+
+def test_skill_offered_is_invoked_then_followed_to_remember():
+    body = {"tools": [{"name": "Skill"}, {"name": "ToolSearch"}],
+            "system": "deferred tools: mcp__statejar__remember mcp__statejar__search",
+            "messages": [{"role": "user", "content": [{"type": "text", "text": "<system-reminder>x</system-reminder>"},
+                                                      {"type": "text", "text": "My name is Meera."}]},
+                         {"role": "system", "content": [{"type": "text", "text": LISTING}]}]}
+    block, _, seen = sm.skill_reply(body, SKILL)
+    assert seen["listed"] and seen["skill_tool"] and block["name"] == "Skill" and block["input"] == {"skill": "statejar"}
+    _turn(body, block, "Launching skill: statejar")
+    no_body, _, _ = sm.skill_reply(body, SKILL)
+    assert no_body["text"].startswith("SKILL NOT LOADED")
+    body["messages"][-1]["content"].append({"type": "text", "text": "Base directory\n\n" + SKILL["marker"]})
+    load, _, _ = sm.skill_reply(body, SKILL)
+    assert load["name"] == "ToolSearch" and load["input"]["query"] == "select:mcp__statejar__remember"
+    _turn(body, load, [])
+    body["tools"].append({"name": "mcp__statejar__remember"})
+    call, _, _ = sm.skill_reply(body, SKILL)
+    assert call["name"] == "mcp__statejar__remember" and call["input"] == {"text": "My name is Meera."}
+    _turn(body, call, '{"stored": true}')
+    assert sm.skill_reply(body, SKILL)[0] == {"type": "text", "text": '{"stored": true}'}
+
+
+def test_without_mcp_tools_the_skill_s_cli_command_runs_through_bash():
+    body = {"tools": [{"name": "Skill"}, {"name": "Bash"}],
+            "messages": [{"role": "user", "content": "What is my laptop budget?"},
+                         {"role": "system", "content": LISTING}]}
+    block, _, _ = sm.skill_reply(body, SKILL)
+    _turn(body, block, "Launching skill: statejar")
+    body["messages"].append({"role": "user", "content": (ROOT / "skills" / "statejar" / "SKILL.md").read_text()})
+    bash, _, seen = sm.skill_reply(body, SKILL)
+    assert bash["name"] == "Bash" and seen["command"] == "statejar search 'What is my laptop budget?'"
