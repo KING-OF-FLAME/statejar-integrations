@@ -34,6 +34,11 @@ jobs:
           npm install -g @anthropic-ai/claude-code > /dev/null
           claude plugin validate ./plugins/statejar
           claude plugin validate .
+      - name: Claude Code offers the agent skill to the model and loads it (scripted model, no StateJar)
+        run: |
+          npm install --prefix "$RUNNER_TEMP/cc" @anthropic-ai/claude-code@2.1.311 > /dev/null
+          python e2e/skill_e2e.py --discovery-only --claude "$RUNNER_TEMP/cc/node_modules/.bin/claude" \
+            --out "$RUNNER_TEMP/skill-discovery"
       - name: Codex installs the plugin and finds its MCP server, hooks and skills (no model, no StateJar)
         run: |
           npm install -g @openai/codex@0.163.0 > /dev/null
