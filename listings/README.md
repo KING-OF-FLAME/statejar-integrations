@@ -22,7 +22,9 @@ Two things must be true before any listing goes out:
   anything is sent.
 - **Where it goes:** `api.statejar.com` and `statejar.com/mcp`, on StateJar's own server (one VPS in France). To read
   facts from a message, the server sends it to a cloud model provider it uses for extraction (today Google Gemini
-  and OpenRouter); StateJar's own model on the server reads it only if they fail. StateJar stores no transcript.
+  and OpenRouter). No model runs on StateJar's own server. If every provider fails, no model reads the message then:
+  StateJar's deterministic rules (not a model) read it on the server, and the message is held and read again by a
+  provider once one answers. StateJar stores no transcript.
   The privacy policy (https://statejar.com/privacy, "Who else sees your data") names each provider and is the
   authority if this text and it ever differ.
 - **Credentials:** a StateJar developer key (`sj_live_…`), read from `STATEJAR_API_KEY` or from what `statejar login`
@@ -36,12 +38,10 @@ File: [`mcp-registry/server.json`](mcp-registry/server.json): the remote server 
 
 The name decides the account:
 
-- **`com.statejar/memory` (recommended):** proves that StateJar owns `statejar.com`. You make an Ed25519 key pair on
-  your own machine (`openssl genpkey -algorithm Ed25519 -out key.pem`, OpenSSL 3), keep the private key yourself, and
-  publish only the public key. Either add the DNS TXT record `v=MCPv1; k=ed25519; p=<public key>` at the apex of
-  statejar.com (GoDaddy), or send me the public-key line and I host it at `https://statejar.com/.well-known/mcp-registry-auth`
-  (a website-only change). Then run `mcp-publisher login dns --domain statejar.com --private-key <hex private key>` (or `login
-  http`; the registry's page shows how to print the key as hex with `openssl pkey -in key.pem -noout -text`), followed by `mcp-publisher publish` in this folder.
+- **`com.statejar/memory` (recommended):** proves that StateJar owns `statejar.com`. The owner chose the HTTP domain
+  route, and the integrator (not the owner) publishes from the StateJar server. The public key is served at
+  `https://statejar.com/.well-known/mcp-registry-auth`, and `mcp-publisher login http --domain statejar.com` followed by
+  `mcp-publisher publish` (in this folder) are run on the server. No DNS record is needed.
 - **`io.github.king-of-flame/statejar`:** no domain step. Run `mcp-publisher login github` with your GitHub account
   (a device code), change `name` in server.json, then `mcp-publisher publish`.
 

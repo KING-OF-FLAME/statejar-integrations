@@ -1,0 +1,37 @@
+name: hermes-validate
+on:
+  push:
+    branches: [main]
+    paths: ["hermes/**", ".github/workflows/hermes-validate.yml"]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Commit to validate (default: the selected ref)"
+        required: false
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Commit under validation
+        run: git rev-parse HEAD
+      # `hermes plugins validate` is not in hermes-agent 0.19.0 on PyPI (its `plugins` subcommands stop at
+      # install/update/remove/list/enable/disable); it is in NousResearch/hermes-agent's main, which the catalog's own
+      # CI uses. So install that commit, pinned.
+      - name: Install Hermes Agent (main at a pinned commit)
+        env:
+          HERMES_REF: 5057eaa3a4d0cbef0e30078418a5115faa62889e
+        run: |
+          python -m venv /tmp/hermes
+          /tmp/hermes/bin/pip install -q "hermes-agent @ git+https://github.com/NousResearch/hermes-agent@${HERMES_REF}"
+          ls /tmp/hermes/bin | grep -i hermes
+          /tmp/hermes/bin/hermes plugins --help | head -20
+      - name: hermes plugins validate
+        run: /tmp/hermes/bin/hermes plugins validate hermes/statejar --install-deps
