@@ -69,8 +69,8 @@ If no key is set, the provider uses the one `statejar login` (the `statejar` pac
 - **Leaves your machine:** a recall sends the question (your message) to StateJar's query endpoint, and a batch sends
   your queued messages with secrets already removed. The agent's replies and tool output are never sent.
 - **Who reads your messages:** StateJar's server sends each message to a cloud model provider it uses for extraction
-  (today Google Gemini and OpenRouter). No model runs on StateJar's own server. If every provider fails, StateJar's
-  deterministic rules (not a model) read the message, and it is held and read again by a provider once one answers.
+  (today Google Gemini and OpenRouter). No language model runs on StateJar's own server (GLiNER2, a small span model, does). If every provider fails, StateJar's
+  deterministic rules and GLiNER2 (no language model) read the message, and it is held and read again by a provider once one answers.
   StateJar stores no transcript. The policy, "Who else sees your data": https://statejar.com/privacy.
 - **Stays on your machine:** the queue lives in `statejar/` inside your Hermes home (mode 600), per profile. Its
   `state.json` holds only counts, times and the last status code.

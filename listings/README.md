@@ -22,8 +22,8 @@ Two things must be true before any listing goes out:
   anything is sent.
 - **Where it goes:** `api.statejar.com` and `statejar.com/mcp`, on StateJar's own server (one VPS in France). To read
   facts from a message, the server sends it to a cloud model provider it uses for extraction (today Google Gemini
-  and OpenRouter). No model runs on StateJar's own server. If every provider fails, no model reads the message then:
-  StateJar's deterministic rules (not a model) read it on the server, and the message is held and read again by a
+  and OpenRouter). No language model runs on StateJar's own server (GLiNER2, a small span model, does). If every provider fails, no language model reads the message then:
+  StateJar's deterministic rules and GLiNER2 read it on the server, and the message is held and read again by a
   provider once one answers. StateJar stores no transcript.
   The privacy policy (https://statejar.com/privacy, "Who else sees your data") names each provider and is the
   authority if this text and it ever differ.
