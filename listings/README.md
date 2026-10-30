@@ -20,9 +20,11 @@ Two things must be true before any listing goes out:
 - **Capture:** the user's own messages go to the StateJar API in batches. The assistant's replies and tool output are
   never sent. API keys, cloud keys, tokens, private keys and passwords are removed on the user's machine before
   anything is sent.
-- **Where it goes:** `api.statejar.com` and `statejar.com/mcp`, on StateJar's own server (one VPS in France). Facts
-  are extracted there by StateJar's own model. No third-party model reads the messages, and StateJar stores no
-  transcript.
+- **Where it goes:** `api.statejar.com` and `statejar.com/mcp`, on StateJar's own server (one VPS in France). To read
+  facts from a message, the server sends it to a cloud model provider it uses for extraction (today Google Gemini
+  and OpenRouter); StateJar's own model on the server reads it only if they fail. StateJar stores no transcript.
+  The privacy policy (https://statejar.com/privacy, "Who else sees your data") names each provider and is the
+  authority if this text and it ever differ.
 - **Credentials:** a StateJar developer key (`sj_live_…`), read from `STATEJAR_API_KEY` or from what `statejar login`
   keeps (the OS keychain, or a file only the user can read).
 - Privacy policy: https://statejar.com/privacy. Delete an account and everything in it: https://statejar.com/delete-account.
@@ -38,8 +40,8 @@ The name decides the account:
   your own machine (`openssl genpkey -algorithm Ed25519 -out key.pem`, OpenSSL 3), keep the private key yourself, and
   publish only the public key. Either add the DNS TXT record `v=MCPv1; k=ed25519; p=<public key>` at the apex of
   statejar.com (GoDaddy), or send me the public-key line and I host it at `https://statejar.com/.well-known/mcp-registry-auth`
-  (a website-only change). Then run `mcp-publisher login dns --domain statejar.com --private-key <key>` (or `login
-  http`), followed by `mcp-publisher publish` in this folder.
+  (a website-only change). Then run `mcp-publisher login dns --domain statejar.com --private-key <hex private key>` (or `login
+  http`; the registry's page shows how to print the key as hex with `openssl pkey -in key.pem -noout -text`), followed by `mcp-publisher publish` in this folder.
 - **`io.github.king-of-flame/statejar`:** no domain step. Run `mcp-publisher login github` with your GitHub account
   (a device code), change `name` in server.json, then `mcp-publisher publish`.
 
@@ -73,8 +75,8 @@ Provider: [`../hermes/statejar`](../hermes/statejar). `plugin.yaml` sets the nam
 the code registers a memory provider (`memory.provider: statejar`). Hermes installs a repository subdirectory:
 `hermes plugins install KING-OF-FLAME/statejar-integrations/hermes/statejar --enable` (the provider's README).
 
-**Not verified:** how an entry gets into the catalog at hermes-agent.nousresearch.com/docs/plugins. I found no
-submission guide from here (that site's documentation does not resolve from this sandbox). The catalog's entries
+**How an entry gets in (Hermes docs, read 2026-10-30):** a pull request to `NousResearch/hermes-agent` that adds
+exactly one file, `plugin-catalog/statejar.yaml`. The draft is [`hermes/statejar.yaml`](hermes/statejar.yaml). The catalog's entries
 show a category (Memory) and a data disclosure. Use this text:
 
 - Name: StateJar. Category: Memory.
@@ -86,3 +88,5 @@ show a category (Memory) and a data disclosure. Use this text:
 
 - Claude Code and Codex: this repository is their marketplace (`/plugin marketplace add KING-OF-FLAME/statejar-integrations`).
 - OpenCode: the `opencode-statejar` package, published to npm under our account.
+
+Exact numbered steps for the owner: `docs/REGISTRY_SUBMISSIONS.md` in KING-OF-FLAME/Statejar-production.
