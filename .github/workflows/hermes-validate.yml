@@ -35,7 +35,7 @@ jobs:
           git -C /tmp/hermes-src checkout -q --detach "$HERMES_REF"
           git -C /tmp/hermes-src rev-parse HEAD
           # its dependencies are exact pins resolved by uv from its uv.lock; pip cannot resolve them
-          python -m pip install -q "uv==0.9.5"
+          python -m pip install -q "uv==0.13.5"   # the uv Hermes pins in pm/lock.json
           (cd /tmp/hermes-src && UV_PROJECT_ENVIRONMENT=/tmp/hermes uv sync --frozen --no-dev -q)
           /tmp/hermes/bin/hermes plugins --help | head -20
       - name: hermes plugins validate
