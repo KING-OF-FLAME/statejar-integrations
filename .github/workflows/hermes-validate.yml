@@ -25,13 +25,17 @@ jobs:
       # `hermes plugins validate` is not in hermes-agent 0.19.0 on PyPI (its `plugins` subcommands stop at
       # install/update/remove/list/enable/disable); it is in NousResearch/hermes-agent's main, which the catalog's own
       # CI uses. So install that commit, pinned.
-      - name: Install Hermes Agent (main at a pinned commit)
+      # hermes-agent main refuses wheel builds (its setup.py guard: "Building wheels or sdists for hermes-agent is
+      # not supported"); its own catalog CI runs from a checkout, so clone the pinned commit and install it editable.
+      - name: Install Hermes Agent (main at a pinned commit, editable)
         env:
           HERMES_REF: 5057eaa3a4d0cbef0e30078418a5115faa62889e
         run: |
+          git clone -q --filter=blob:none https://github.com/NousResearch/hermes-agent /tmp/hermes-src
+          git -C /tmp/hermes-src checkout -q --detach "$HERMES_REF"
+          git -C /tmp/hermes-src rev-parse HEAD
           python -m venv /tmp/hermes
-          /tmp/hermes/bin/pip install -q "hermes-agent @ git+https://github.com/NousResearch/hermes-agent@${HERMES_REF}"
-          ls /tmp/hermes/bin | grep -i hermes
+          /tmp/hermes/bin/pip install -q -e /tmp/hermes-src
           /tmp/hermes/bin/hermes plugins --help | head -20
       - name: hermes plugins validate
-        run: /tmp/hermes/bin/hermes plugins validate hermes/statejar --install-deps
+        run: /tmp/hermes/bin/hermes plugins validate --install-deps hermes/statejar
