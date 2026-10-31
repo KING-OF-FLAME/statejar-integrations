@@ -34,8 +34,9 @@ jobs:
           git clone -q --filter=blob:none https://github.com/NousResearch/hermes-agent /tmp/hermes-src
           git -C /tmp/hermes-src checkout -q --detach "$HERMES_REF"
           git -C /tmp/hermes-src rev-parse HEAD
-          python -m venv /tmp/hermes
-          /tmp/hermes/bin/pip install -q -e /tmp/hermes-src
+          # its dependencies are exact pins resolved by uv from its uv.lock; pip cannot resolve them
+          python -m pip install -q "uv==0.9.5"
+          (cd /tmp/hermes-src && UV_PROJECT_ENVIRONMENT=/tmp/hermes uv sync --frozen --no-dev -q)
           /tmp/hermes/bin/hermes plugins --help | head -20
       - name: hermes plugins validate
         run: /tmp/hermes/bin/hermes plugins validate --install-deps hermes/statejar
