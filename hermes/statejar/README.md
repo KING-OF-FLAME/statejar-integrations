@@ -43,7 +43,7 @@ Other options go in `statejar.json` in your Hermes home (`~/.hermes` unless you 
 | `recall_each_prompt` | `true` | Recall what each message needs (one audited query per message). |
 | `api_url` | `https://api.statejar.com/api/v1` | The REST API the provider calls. |
 
-If no key is set, the provider uses the one `statejar login` (the `statejar` package on PyPI) keeps.
+The key reaches the provider only through Hermes (`hermes memory setup` stores it as `STATEJAR_API_KEY`); the provider never reads another tool's login, `statejar login`'s file included (Hermes plugin catalog rule 11).
 
 ## Verify
 
@@ -57,7 +57,7 @@ If no key is set, the provider uses the one `statejar login` (the `statejar` pac
 
 - **`statejar` is not in `hermes memory status`:** the plugin is not installed in this profile; install it again
   with `hermes plugins install …`.
-- **"no developer key yet"** in the agent's context: run `hermes memory setup` again, or `statejar login`.
+- **"no developer key yet"** in the agent's context: run `hermes memory setup` again.
 - **HTTP 401 from a tool:** the key is wrong or revoked. Make a new one and run `hermes memory setup`.
 - **`429` in `hermes statejar status`:** your plan's per-minute or monthly limit; the batch stays queued and is sent
   later.

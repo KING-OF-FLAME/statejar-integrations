@@ -110,21 +110,6 @@ def scrub(text: str) -> tuple[str, int]:
     return "".join(out) + text[pos:], n
 
 
-def _credentials_key() -> str:
-    """The key `statejar login` keeps, when no STATEJAR_API_KEY is set."""
-    override = os.environ.get("STATEJAR_CONFIG_DIR")
-    if override:
-        path = Path(override) / "credentials.json"
-    elif os.name == "nt":
-        path = Path(os.environ.get("APPDATA") or Path.home() / "AppData" / "Roaming") / "statejar" / "credentials.json"
-    else:
-        path = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "statejar" / "credentials.json"
-    try:
-        return str(json.loads(path.read_text(encoding="utf-8")).get("api_key") or "").strip()
-    except (OSError, ValueError):
-        return ""
-
-
 def _flag(value: Any, default: bool) -> bool:
     if value is None or value == "":
         return default
@@ -154,7 +139,7 @@ class StateJarMemoryProvider(MemoryProvider):
         return "statejar"
 
     def is_available(self) -> bool:
-        return bool((get_secret(KEY_ENV) or "").strip() or _credentials_key())
+        return bool((get_secret(KEY_ENV) or "").strip())
 
     def get_config_schema(self) -> List[Dict[str, Any]]:
         return [
@@ -179,7 +164,8 @@ class StateJarMemoryProvider(MemoryProvider):
     def initialize(self, session_id: str, **kwargs) -> None:
         home = Path(kwargs.get("hermes_home") or os.environ.get("HERMES_HOME") or Path.home() / ".hermes")
         config = self._read_config(home)
-        self._key = (get_secret(KEY_ENV) or "").strip() or _credentials_key()
+        # only through Hermes (catalog rule 11): never another tool's login file, `statejar login`'s included
+        self._key = (get_secret(KEY_ENV) or "").strip()
         self._api = str(config.get("api_url") or os.environ.get("STATEJAR_API_URL") or DEFAULT_API).rstrip("/")
         scope = str(config.get("scope") or os.environ.get("STATEJAR_SCOPE") or DEFAULT_SCOPE)
         self._scope = scope if re.fullmatch(r"[A-Za-z0-9._:-]{1,64}", scope) else DEFAULT_SCOPE
@@ -291,8 +277,8 @@ class StateJarMemoryProvider(MemoryProvider):
 
     def system_prompt_block(self) -> str:
         if not self._key:
-            return ("StateJar memory: no developer key yet (set STATEJAR_API_KEY with `hermes memory setup`, or run "
-                    "`statejar login`); nothing is recalled or captured.")
+            return ("StateJar memory: no developer key yet (set STATEJAR_API_KEY with `hermes memory setup`); "
+                    "nothing is recalled or captured.")
         return (f"StateJar memory scope: {self._scope}. Recalled memory names the handle (shm_...) of the state it "
                 "came from; tools statejar_search, statejar_remember, statejar_forget, statejar_list.")
 
