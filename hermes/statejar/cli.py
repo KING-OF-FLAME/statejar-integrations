@@ -17,11 +17,16 @@ except ImportError:                             # pragma: no cover - older Herme
 
 
 def _provider():
-    # Hermes imports cli.py on its own, without the provider package, so the provider comes from Hermes's discovery
-    from plugins.memory import load_memory_provider
-    provider = load_memory_provider("statejar")
-    if provider is None:
-        sys.exit("The StateJar memory provider is not installed in this Hermes profile.")
+    # Hermes imports cli.py on its own, without the provider package, so the provider module is loaded from the file
+    # beside this one: no private Hermes core import (catalog rule 9; plugins.memory is not a documented surface)
+    import importlib.util
+    from pathlib import Path
+    spec = importlib.util.spec_from_file_location("statejar_memory_provider", Path(__file__).with_name("__init__.py"))
+    if spec is None or spec.loader is None:
+        sys.exit("The StateJar memory provider is not installed beside this command.")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    provider = module.StateJarMemoryProvider()
     provider.initialize("cli", hermes_home=str(get_hermes_home()), platform="cli", agent_context="primary")
     return provider
 
